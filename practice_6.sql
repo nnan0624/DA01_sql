@@ -94,7 +94,20 @@ GROUP BY employee_id
 HAVING count(distinct department_id)=1)
 
 ---ex11
+(SELECT u.name results FROM MovieRating r
+JOIN Users u ON u. user_id = r. user_id 
+GROUP BY u.name
+ORDER BY COUNT(*) DESC, u.name
+LIMIT 1)
+UNION ALL
+(SELECT m.title results FROM MovieRating r
+JOIN Movies m ON m.movie_id  = r.movie_id 
+WHERE  DATE_FORMAT(created_at, '%Y-%m') = '2020-02'
+GROUP BY m.title 
+ORDER BY avg(rating) DESC, m.title 
+LIMIT 1)
 
+--ex12
 
 
 
