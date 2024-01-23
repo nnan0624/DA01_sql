@@ -103,6 +103,62 @@ Insight: Trẻ nhất là 12 tuổi có 1704 khách hàng, lớn tuổi nhất l
 
 
 ---Q4
+WITH CTE AS(
+SELECT 
+id AS product_id, 
+name AS product_name,
+SUM(retail_price) AS sale,
+SUM(cost) AS cost,
+SUM(retail_price - cost) AS profit
+FROM bigquery-public-data.thelook_ecommerce.products 
+GROUP BY id, name )
+
+SELECT 
+  product_id,
+  product_name,
+  cost,
+  sale,
+  profit,
+  month_year,
+  rank_per_month
+FROM( 
+SELECT 
+ c.product_id, 
+ c.product_name,
+ cost, 
+ c.sale,
+ c.profit,
+ FORMAT_DATE('%Y-%m', DATE(created_at)) AS month_year,
+ DENSE_RANK() OVER (PARTITION BY FORMAT_DATE('%Y-%m', DATE(created_at)) ORDER BY c.profit DESC) AS rank_per_month 
+FROM CTE c
+JOIN bigquery-public-data.thelook_ecommerce.order_items oi ON c.product_id  = oi.product_id) ranked_products
+WHERE 
+rank_per_month <= 5
+ORDER BY 
+month_year, rank_per_month
+
+---Q5
+WITH CTE AS( SELECT 
+ id AS product_id,
+ category,
+ SUM(retail_price) AS revenue
+FROM bigquery-public-data.thelook_ecommerce.products 
+GROUP BY category, id)
+
+SELECT 
+category,
+revenue,
+dates
+FROM (
+SELECT 
+c.category,
+SUM(c.revenue) revenue,
+FORMAT_DATE('%Y-%m-%d', DATE(created_at)) AS dates
+FROM CTE c
+JOIN bigquery-public-data.thelook_ecommerce.order_items oi ON c.product_id  = oi.product_id
+GROUP BY  category, dates) ranked_products
+WHERE dates BETWEEN '2022-01-15' AND '2022-04-15'
+ORDER BY dates
 
 
 
